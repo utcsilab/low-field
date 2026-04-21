@@ -5,20 +5,40 @@
 
 ## Send a File to the Printer
 
-Find the printer's COM port by opening **PowerShell** and running:
+**Step 1 — Find the COM port**
+
+Open PowerShell and run:
 ```powershell
 Get-PnpDevice -Class Ports | Where-Object Status -eq 'OK' | Select-Object FriendlyName
 ```
-Look for something like: `USB Serial Device (COM3)` — the number after COM is your port.
+Look for: `USB Serial Device (COM3)` — the number after COM is your port.
 
-Alternatively, open **Device Manager** → expand **Ports (COM & LPT)** and look for the USB Serial Device.
+Alternatively open **Device Manager** → expand **Ports (COM & LPT)**.
 
-To send the file, run this in PowerShell, replacing `FILENAME` and `COM3` with your values:
+---
+
+**Step 2 — Confirm your .gcode file exists**
+
 ```powershell
-gpx -s -m fcp C:\mri_lab\FILENAME.gcode COM3
+Get-ChildItem C:\low-field\testing\
+```
+Make sure your file appears before trying to send it.
+
+---
+
+**Step 3 — Send the file**
+
+Use the full path to gpx.exe, replacing `USERNAME`, `FILENAME` and `COM3` with your values:
+```powershell
+C:\Users\USERNAME\Downloads\gpx-2.7\gpx.exe -s -m fcp C:\low-field\testing\FILENAME.gcode COM3
 ```
 
-> **Note:** If `gpx` isn't recognized, install it from https://github.com/markwal/GPX/releases and add it to your PATH, or navigate to the folder where gpx.exe lives and run it with `.\gpx`.
+> **Note:** Replace `C:\Users\USERNAME\Downloads\gpx-2.7\gpx.exe` with wherever you extracted gpx.exe on your machine. If you're unsure, run this to find it:
+> ```powershell
+> Get-ChildItem -Path C:\Users\$env:USERNAME\Downloads -Recurse -Filter "gpx.exe"
+> ```
+
+> **Warning:** Windows has a GPS conversion tool also called `gpx` that may already be installed. Always use the full path to your gpx.exe to avoid accidentally calling the wrong one.
 
 ---
 
