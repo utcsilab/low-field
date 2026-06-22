@@ -3,6 +3,11 @@ Reads (x, y) positions from map_pos.csv, moves the probe to each position
 through a persistent gpx -i stdin stream, waits for travel to complete, then
 writes placeholder miscellaneous measurements to measurements.csv.
 
+# NOTE: ALWAYS START THE BED ONE THE SIDE FARTHEST FROM THE POWER CORD SHORT SIDE,
+# CLOSER TO THE POWER CORD LONG SIDE
+
+# NOTE: MAX X AND Y VALUES ARE 297 and 162 RESPECTIVELY
+
 Run:
     python3 main.py
 
@@ -29,14 +34,14 @@ from pathlib import Path
 
 # Config
 
-INPUT_FILE = Path("input_positions.csv")
+INPUT_FILE = Path("corners.csv")
 OUTPUT_FILE = Path("measurements.csv")
 
-PORT = "/dev/cu.usbmodem2101"
+PORT = "/dev/ttyACM0"
 GPX_PROFILE = "fcp"
 
 FEEDRATE_MM_MIN = 3000
-SETTLE_TIME_S = 0.3
+SETTLE_TIME_S = 0.5
 
 HOME_POSITION_X = 0.0
 HOME_POSITION_Y = 0.0
@@ -129,27 +134,6 @@ def calculate_travel_time(start: Position, end: Position) -> float:
     return travel_time_s + SETTLE_TIME_S
 
 
-def home(stream: GpxStream) -> Position:
-    """
-    Treat machine position (0, 0) as home.
-
-    This sends a move to X0 Y0. It does not use an offset and does not move Z.
-    """
-    print("Moving to home position (0, 0)...")
-
-    stream.send([
-        "G90",
-        f"G1 X{HOME_POSITION_X:.3f} Y{HOME_POSITION_Y:.3f} F{FEEDRATE_MM_MIN}",
-    ])
-
-    # Since startup position is not known, use a conservative fixed wait.
-    # Adjust this if the machine may start far from home.
-    time.sleep(5.0)
-
-    print("Home position reached.")
-    return Position(HOME_POSITION_X, HOME_POSITION_Y)
-
-
 def move_to(stream: GpxStream, current: Position, target: Position) -> Position:
     stream.send([
         "G90",
@@ -228,11 +212,13 @@ def main() -> None:
         return
 
     with GpxStream(GPX_PROFILE, PORT) as stream:
-        current_position = home(stream)
 
         with OUTPUT_FILE.open("w", newline="") as outfile:
             writer = csv.writer(outfile)
             write_output_header(writer)
+
+            current_position = Position(0,0)
+
 
             for index, target in enumerate(positions, start=1):
                 print(f"[{index}] Moving to ({target.x:.1f}, {target.y:.1f}) ...")
