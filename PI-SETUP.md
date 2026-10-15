@@ -7,6 +7,7 @@
 
 ## Hardware
 - Raspberry Pi 3/4/5 (any OS image ≥ Bookworm), USB cable Pi → FCP controller board
+- Note: the sudo password to the low-field pi is 'password'
 - TMAG5173 breakout on Pi I2C pins (SDA=GPIO2, SCL=GPIO3, 3.3 V — NOT 5 V, check your breakout)
 - Pi must NOT be powered from the same USB host port as the printer (ground loops); use a proper PSU
 
